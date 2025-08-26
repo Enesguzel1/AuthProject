@@ -16,7 +16,7 @@ public class ProfileController {
     private final ProfileService profileService;
 
 
-    @PostMapping
+    @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public ProfileResponse createProfile(@Valid @RequestBody ProfileRequest request){
         return profileService.createProfile(request);
