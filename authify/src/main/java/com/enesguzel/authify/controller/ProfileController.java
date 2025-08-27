@@ -3,6 +3,7 @@ package com.enesguzel.authify.controller;
 import com.enesguzel.authify.io.ProfileRequest;
 import com.enesguzel.authify.io.ProfileResponse;
 import com.enesguzel.authify.service.ProfileService;
+import com.enesguzel.authify.service.impl.EmailService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,13 +15,15 @@ import org.springframework.web.bind.annotation.*;
 public class ProfileController {
 
     private final ProfileService profileService;
+    private final EmailService emailService;
 
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public ProfileResponse createProfile(@Valid @RequestBody ProfileRequest request){
-        return profileService.createProfile(request);
-        //TODO: send to user welcome mail
+        ProfileResponse response = profileService.createProfile(request);
+        emailService.sendWelcomeMail(response.getEmail(),response.getName());
+        return response;
     }
 
     @GetMapping("/profile")
