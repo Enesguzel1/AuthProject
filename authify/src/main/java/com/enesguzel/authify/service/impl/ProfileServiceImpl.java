@@ -13,12 +13,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
     @Override
     public ProfileResponse createProfile(ProfileRequest request) {
         UserEntity newProfile = convertToUserEntity(request);
@@ -36,6 +38,23 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return convertToResponse(existingProfile);
 
+    }
+
+    @Override
+    public void sendResetOtp(String email) {
+        UserEntity existingUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        String otp = String.valueOf(ThreadLocalRandom.current().nextInt(100000,1000000));
+        long expiryTime = System.currentTimeMillis() + (60*15*1000); //15 dakika
+        existingUser.setResetOtp(otp);
+        existingUser.setResetOtpExpireAt(expiryTime);
+        userRepository.save(existingUser);
+        try{
+            //mail gönder
+            emailService.sendResetOtpMail(existingUser.getEmail(), otp);
+        }catch(Exception e){
+            throw new RuntimeException("Unable to send reset OTP");
+        }
     }
 
     private ProfileResponse convertToResponse(UserEntity newProfile) {

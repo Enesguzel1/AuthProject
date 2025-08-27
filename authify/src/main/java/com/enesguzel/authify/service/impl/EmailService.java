@@ -22,4 +22,13 @@ public class EmailService {
         message.setText("Hoşgeldin "+name+"!\n\nBizi tercih ettiğiniz için teşekkür ederiz!\n\n Saygılarımızla,\nGUZEL Developer Team♥");
         mailSender.send(message);
     }
+
+    public void sendResetOtpMail(String email,String resetOtp) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromMail);
+        message.setTo(email);
+        message.setSubject("Şifre Sıfırlama Maili");
+        message.setSubject("Şifrenizi sıfırlama isteği aldık, eğer siz değilseniz bu maili dikkate almayınız.\n\n Kod : "+resetOtp);
+        mailSender.send(message);
+    }
 }

@@ -3,6 +3,7 @@ package com.enesguzel.authify.controller;
 import com.enesguzel.authify.entity.UserEntity;
 import com.enesguzel.authify.io.AuthRequest;
 import com.enesguzel.authify.io.AuthResponse;
+import com.enesguzel.authify.service.ProfileService;
 import com.enesguzel.authify.service.impl.AppUserDetailService;
 import com.enesguzel.authify.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +16,10 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -32,6 +32,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final AppUserDetailService appUserDetailService;
     private final JwtUtil jwtUtil;
+    private final ProfileService profileService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest){
@@ -65,6 +66,19 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapError);
         }
 
+    }
+    @GetMapping("/is-authenticated")
+    public ResponseEntity<Boolean> isAuthenticated(@CurrentSecurityContext(expression = "authentication?.name") String email){
+        return ResponseEntity.ok(email!=null);
+    }
+
+    @PostMapping("/send-reset-otp")
+    public void sendResetOtp(@RequestParam String email){
+        try {
+            profileService.sendResetOtp(email);
+        }catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Unable to send reset OTP");
+        }
     }
 
     private void authenticate(String email, String password) {
