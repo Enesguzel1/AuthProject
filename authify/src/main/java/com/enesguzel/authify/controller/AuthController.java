@@ -3,9 +3,12 @@ package com.enesguzel.authify.controller;
 import com.enesguzel.authify.entity.UserEntity;
 import com.enesguzel.authify.io.AuthRequest;
 import com.enesguzel.authify.io.AuthResponse;
+import com.enesguzel.authify.io.ProfileRequest;
+import com.enesguzel.authify.io.ResetPasswordRequest;
 import com.enesguzel.authify.service.ProfileService;
 import com.enesguzel.authify.service.impl.AppUserDetailService;
 import com.enesguzel.authify.util.JwtUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -79,6 +82,22 @@ public class AuthController {
         }catch (Exception e){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Unable to send reset OTP");
         }
+    }
+
+    @PostMapping("/reset-password")
+    public void resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        profileService.resetPassword(request.getEmail(), request.getNewPassword(), request.getOtp());
+    }
+    @PostMapping("/send-otp")
+    public void sendOtp(@CurrentSecurityContext(expression = "authentication?.name")String email) {
+        profileService.sendOtp(email);
+    }
+    @PostMapping("/verify-email")
+    public void verifyEmail(@RequestBody Map<String, Object> request,@CurrentSecurityContext(expression = "authentication?.name")String email) {
+        if (request.get("otp").toString() ==null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Missing OTP");
+        }
+        profileService.verifyOtp(email,request.get("otp").toString());
     }
 
     private void authenticate(String email, String password) {

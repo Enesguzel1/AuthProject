@@ -28,7 +28,17 @@ public class EmailService {
         message.setFrom(fromMail);
         message.setTo(email);
         message.setSubject("Şifre Sıfırlama Maili");
-        message.setSubject("Şifrenizi sıfırlama isteği aldık, eğer siz değilseniz bu maili dikkate almayınız.\n\n Kod : "+resetOtp);
+        message.setText("Şifrenizi sıfırlama isteği aldık, eğer siz değilseniz bu maili dikkate almayınız.\n\n Kod : "+resetOtp);
         mailSender.send(message);
     }
+
+    public void sendVerifyOtpMail(String email,String otp) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromMail);
+        message.setTo(email);
+        message.setSubject("Emailinizi Doğrulayın");
+        message.setText("Aşağıdaki kodu kullanarak Emailinizi doğrulayabilirsiniz!\n\n Kod : "+otp);
+        mailSender.send(message);
+    }
+
 }
