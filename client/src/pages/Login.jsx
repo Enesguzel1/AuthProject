@@ -1,9 +1,65 @@
 import {Link, useNavigate} from "react-router-dom";
 import {assets} from "../assets/assets.js";
-import {useState} from "react";
+import {useContext, useState} from "react";
+import axios from "axios";
+import {toast} from "react-toastify";
+import {AppConstants} from "../util/constants.js";
+import {AppContext} from "../context/AppContext.jsx";
 
 const Login = () => {
+
     const [isCreateAccount, setIsCreateAccount] = useState(false);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const {BASE_URL,setIsLoggedIn,getUserData} = useContext(AppContext);
+    const navigate = useNavigate();
+
+    const onSubmitHandler = async (e) => {
+        e.preventDefault();
+        axios.defaults.withCredentials = true;
+        setLoading(true);
+        try{
+            if (isCreateAccount){
+                console.log("error yok");
+                    //kayıt işlemi
+                const response = await axios.post(`${BASE_URL}/register`, {
+                    name,
+                    email,
+                    password,
+                })
+                if(response.status === 201){
+                    navigate("/");
+                    toast.success("Kayıt başarılı");
+                    console.log("error2");
+                }else{
+                    console.log("error");
+                    toast.error("Bu email zaten kullanılıyor");
+                }
+            }else{
+                //login işlemi
+                const response = await axios.post(`${BASE_URL}/login`, {
+                    email,
+                    password,
+                })
+                if(response.status === 200){
+                    setIsLoggedIn(true)
+                    getUserData()
+                    navigate("/");
+                    toast.success("Giriş başarılı");
+                }else{
+                    toast.error("Şifre/Kullanıcı adı yanlış!")
+                }
+            }
+        }catch(err){
+            console.log(err);
+            toast.error(err.response.data.message);
+        }finally{
+            setLoading(false);
+        }
+    }
+
     return (
         <div className="position-relative min-vh-100 d-flex justify-content-center align-items-center"
         style={{background:"linear-gradient(90deg,#6a5af9,#8268f9)",border:"none"}}>
@@ -18,7 +74,7 @@ const Login = () => {
                 <h2 className="text-center mb-4">
                     {isCreateAccount ? ("Kayıt Ol") : "Giriş Yap"}
                 </h2>
-                <form>
+                <form onSubmit={onSubmitHandler}>
                     {
                         isCreateAccount && (
                             <div className="mb-3">
@@ -27,7 +83,10 @@ const Login = () => {
                                     type="text"
                                     id="fullname"
                                     className="form-control"
-                                    placeholder="John Doe" required/>
+                                    placeholder="John Doe" required
+                                    onChange={(e) => setName(e.target.value)}
+                                    value={name}
+                                />
                             </div>
                         )
                     }
@@ -37,7 +96,10 @@ const Login = () => {
                             type="email"
                             id="email"
                             className="form-control"
-                            placeholder="E-mail" required/>
+                            placeholder="E-mail" required
+                            onChange={(e) => setEmail(e.target.value)}
+                            value={email}
+                        />
                     </div>
                     <div className="mb-3">
                         <label htmlFor="password" className="form-label">Şifre</label>
@@ -45,7 +107,10 @@ const Login = () => {
                             type="password"
                             id="password"
                             className="form-control"
-                            placeholder="*********" required/>
+                            placeholder="*********" required
+                            onChange={(e) => setPassword(e.target.value)}
+                            value={password}
+                        />
                     </div>
                     {!isCreateAccount && (
                         <div className="d-flex justify-content-between mb-3">
@@ -55,8 +120,8 @@ const Login = () => {
                         </div>
                     )}
 
-                    <button type="submit" className="btn btn-primary w-100">
-                        {isCreateAccount ? ("Kayıt Ol"): "Giriş Yap"}
+                    <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+                        {loading ? "Yükleniyor..." : isCreateAccount ? ("Kayıt Ol"): "Giriş Yap"}
                     </button>
                 </form>
                 <div className="text-center mt-3">

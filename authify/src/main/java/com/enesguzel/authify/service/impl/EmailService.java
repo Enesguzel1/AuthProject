@@ -18,7 +18,7 @@ public class EmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromMail);
         message.setTo(email);
-        message.setSubject("Aramıza Hoşgeldin"+name);
+        message.setSubject("Aramıza Hoşgeldin "+name);
         message.setText("Hoşgeldin "+name+"!\n\nBizi tercih ettiğiniz için teşekkür ederiz!\n\n Saygılarımızla,\nGUZEL Developer Team♥");
         mailSender.send(message);
     }
