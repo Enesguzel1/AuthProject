@@ -8,6 +8,7 @@ import com.enesguzel.authify.io.ResetPasswordRequest;
 import com.enesguzel.authify.service.ProfileService;
 import com.enesguzel.authify.service.impl.AppUserDetailService;
 import com.enesguzel.authify.util.JwtUtil;
+    import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -100,7 +101,23 @@ public class AuthController {
         profileService.verifyOtp(email,request.get("otp").toString());
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        ResponseCookie cookie = ResponseCookie.from("jwt","")
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body("Logout successful");
+    }
+
     private void authenticate(String email, String password) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
     }
+
 }
