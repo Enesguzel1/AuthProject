@@ -30,7 +30,7 @@ export const AppContextProvider = (props) => {
             const response = await axios.get(BASE_URL+"/is-authenticated");
             if(response.status === 200 && response.data){
                 setIsLoggedIn(true);
-                getUserData();
+                await getUserData();
             }else{
                 setIsLoggedIn(false);
             }

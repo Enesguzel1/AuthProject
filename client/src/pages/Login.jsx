@@ -22,7 +22,6 @@ const Login = () => {
         setLoading(true);
         try{
             if (isCreateAccount){
-                console.log("error yok");
                     //kayıt işlemi
                 const response = await axios.post(`${BASE_URL}/register`, {
                     name,
@@ -30,9 +29,10 @@ const Login = () => {
                     password,
                 })
                 if(response.status === 201){
+                    setIsLoggedIn(true);
+                    await getUserData();
                     navigate("/");
                     toast.success("Kayıt başarılı");
-                    console.log("error2");
                 }else{
                     console.log("error");
                     toast.error("Bu email zaten kullanılıyor");
@@ -45,7 +45,7 @@ const Login = () => {
                 })
                 if(response.status === 200){
                     setIsLoggedIn(true)
-                    getUserData()
+                    await getUserData()
                     navigate("/");
                     toast.success("Giriş başarılı");
                 }else{

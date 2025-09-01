@@ -1,16 +1,21 @@
 package com.enesguzel.authify.service.impl;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
     private final JavaMailSender mailSender;
+    private final TemplateEngine templateEngine;
     @Value("${spring.mail.properties.mail.smtp.from}")
     private String fromMail;
 
@@ -23,6 +28,8 @@ public class EmailService {
         mailSender.send(message);
     }
 
+
+/*
     public void sendResetOtpMail(String email,String resetOtp) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromMail);
@@ -40,5 +47,33 @@ public class EmailService {
         message.setText("Aşağıdaki kodu kullanarak Emailinizi doğrulayabilirsiniz!\n\n Kod : "+otp);
         mailSender.send(message);
     }
+*/
 
+    public void sendVerifyOtpMail(String email,String otp) throws MessagingException {
+        Context  context = new Context();
+        context.setVariable("otp", otp);
+        String process = templateEngine.process("verify-email", context);
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message);
+
+        helper.setFrom(fromMail);
+        helper.setTo(email);
+        helper.setSubject("Email Doğrulama Maili");
+        helper.setText(process, true);
+        mailSender.send(message);
+    }
+
+    public void sendResetOtpMail(String email,String resetOtp) throws MessagingException  {
+        Context  context = new Context();
+        context.setVariable("otp", resetOtp);
+        String process = templateEngine.process("password-reset-email", context);
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message);
+
+        helper.setFrom(fromMail);
+        helper.setTo(email);
+        helper.setSubject("Şifrenizi mi unuttunuz ?");
+        helper.setText(process, true);
+        mailSender.send(message);
+    }
 }
