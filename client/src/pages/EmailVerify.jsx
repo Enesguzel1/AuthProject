@@ -1,12 +1,14 @@
 import {Link, useNavigate} from "react-router-dom";
 import {assets} from "../assets/assets.js";
-import {useContext, useRef, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import {AppContext} from "../context/AppContext.jsx";
+import {toast} from "react-toastify";
+import axios from "axios";
 
 const EmailVerify = () => {
     const inputRef = useRef([]);
     const [loading, setLoading] = useState(false);
-    const {getUserData,userData,isLoggedIn} = useContext(AppContext);
+    const {getUserData,userData,isLoggedIn,BASE_URL} = useContext(AppContext);
     const navigate = useNavigate();
 
     const handleChange = (e,index) =>{
@@ -34,6 +36,35 @@ const EmailVerify = () => {
         const next = paste.length<6 ? paste.length: 5;
         inputRef.current[next].focus();
     }
+
+    const handleVerify = async () => {
+        const otp = inputRef.current.map(input=>input.value).join("");
+        if(otp.length!==6){
+            toast.error("6 haneyi doldurunuz");
+            return;
+        }
+        setLoading(true);
+        try{
+           const response = await axios.post(BASE_URL+"/verify-email",{otp});
+           if(response.status === 200){
+               toast.success("Doğrulama Başarılı!");
+               getUserData();
+               navigate("/");
+           }else {
+               toast.error("Geçersiz Kod");
+           }
+        }catch(e){
+            console.log(e);
+            toast.error("Doğrulama yapılamadı. Daha sonra tekrar deneyin.");
+        }finally{
+            setLoading(false);
+        }
+
+    }
+
+    useEffect(() => {
+        isLoggedIn && userData && userData.isAccountVerified && navigate("/");
+    },[isLoggedIn,userData]);
 
     return (
         <div className="email-verify-container d-flex align-items-center justify-content-center vh-100 position-relative"
@@ -64,7 +95,8 @@ const EmailVerify = () => {
                         />
                     ))}
                 </div>
-                <button className="btn btn-warning w-100 fw-semibold" disabled={loading}>
+                <button className="btn btn-warning w-100 fw-semibold" disabled={loading}
+                onClick={handleVerify}>
                     {loading ? "Doğrulanıyor..." : "Doğrula"}
                 </button>
             </div>

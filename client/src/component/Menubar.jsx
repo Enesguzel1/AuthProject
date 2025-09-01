@@ -3,6 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {useContext, useEffect, useRef, useState} from "react";
 import {AppContext} from "../context/AppContext.jsx";
 import axios from "axios";
+import {toast} from "react-toastify";
 
 const Menubar = () => {
     const navigate = useNavigate();
@@ -34,6 +35,21 @@ const Menubar = () => {
         }
     }
 
+    const handleSendVerifyMail = async () => {
+        try{
+            axios.defaults.withCredentials = true;
+            const response = await axios.post(BASE_URL+"/send-otp");
+            if (response.status === 200) {
+                navigate("/email-verify");
+                toast.success("Doğrulama maili gönderildi");
+            }else{
+                toast.error("Mail gönderilirken bir sorun oluştu");
+            }
+        }catch(err){
+            console.log(err.response.data.message);
+        }
+    }
+
     return (
         <nav className="navbar bg-white px-5 py-4 d-flex justify-content-between align-items-center">
             <div className="d-flex align-items-center gap-2">
@@ -52,7 +68,7 @@ const Menubar = () => {
                         <div className="position-absolute shadow bg-white rounded p-2"
                         style={{top:"50px",right:0,zIndex:100}}>
                             {!userData.isAccountVerified && (
-                                <div className="dropdown-item py-1 px-2" style={{cursor:"pointer"}}>
+                                <div className="dropdown-item py-1 px-2" style={{cursor:"pointer"}} onClick={handleSendVerifyMail}>
                                     Mail Doğrulama
                                 </div>
                             )}
