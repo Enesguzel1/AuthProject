@@ -50,23 +50,45 @@ const ResetPassword = () => {
             toast.error("6 haneyi doldurunuz");
             return;
         }
+        setOtp(otp)
+        setIsOtpSubmitted(true);
+    }
+
+    const handleSubmitEmail = async (e) => {
+        e.preventDefault();
         setLoading(true);
-        try{
-            const response = await axios.post(BASE_URL+"/reset-password",{otp});
+        try {
+            const response = await axios.post(BASE_URL+"/send-reset-otp?email="+email)
             if(response.status === 200){
-                toast.success("Şifre Değiştirme Başarılı!");
-                getUserData();
-                navigate("/");
+                setIsEmailSent(true);
+                toast.success("Kurtarma kodu mailinize gönderildi.")
             }else {
-                toast.error("Geçersiz Kod");
+                toast.error("Bir şeyler ters gitti :( Daha sonra tekrar deneyin!");
             }
-        }catch(e){
-            console.log(e);
-            toast.error("Şifre değiştirilemedi. Daha sonra tekrar deneyin.");
+        }catch (err){
+            console.log(err);
         }finally{
             setLoading(false);
         }
+    }
 
+    const onSubmitNewPassword = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try{
+            const response = await axios.post(BASE_URL+"/reset-password",
+                {email:email,newPassword:newPassword,otp:otp})
+            if(response.status === 200){
+                toast.success("Şifreniz başarıyla değiştirilmiştir")
+                navigate("/login");
+            }else{
+                toast.error(response.statusText);
+            }
+        }catch(err){
+            toast.error(err.message);
+        }finally{
+            setLoading(false);
+        }
     }
 
 
@@ -85,7 +107,7 @@ const ResetPassword = () => {
                     <p className="mb-4">
                         Email
                     </p>
-                    <form>
+                    <form onSubmit={handleSubmitEmail}>
                         <div className="input-group mb-4 bg-secondary bg-opacity-10 rounded-pill">
                             <span className="input-group-text  bg-transparent border-0 ps-4">
                                 <i className="bi bi-envelope"></i>
@@ -99,7 +121,9 @@ const ResetPassword = () => {
                                    required
                             />
                         </div>
-                        <button className="btn btn-primary w-100 py-2" type="submit">Devam et</button>
+                        <button className="btn btn-primary w-100 py-2" type="submit"
+                        disabled={loading}
+                        >{loading ? "İşleniyor.." : "Devam et"}</button>
                     </form>
                 </div>
             )}
@@ -125,7 +149,7 @@ const ResetPassword = () => {
                             />
                         ))}
                     </div>
-                    <button className="btn btn-warning w-100 fw-semibold" disabled={loading}>
+                    <button className="btn btn-warning w-100 fw-semibold" disabled={loading} onClick={handleVerify}>
                         {loading ? "Doğrulanıyor..." : "Doğrula"}
                     </button>
                 </div>
@@ -136,7 +160,7 @@ const ResetPassword = () => {
                 <div className="rounded-4 p-4 text-center bg-white" style={{width:"100%",maxWidth:"400px"}}>
                     <h4>Yeni Şifre</h4>
                     <p className="mb-4">Yeni şifrenizi giriniz.</p>
-                    <form>
+                    <form onSubmit={onSubmitNewPassword}>
                         <div className="input-group mb-4 bg-secondary bg-opacity-10 rounded-pill">
                                         <span className="input-group-text  bg-transparent border-0 ps-4">
                                             <i className="bi bi-person-fill-lock"></i>
@@ -149,8 +173,8 @@ const ResetPassword = () => {
                                    value={newPassword}
                                    required/>
                         </div>
-                        <button type="submit" className="btn btn-primary w-100">
-                            Onayla
+                        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+                            {loading ? "işleniyor..": "Onayla"}
                         </button>
                     </form>
                 </div>
